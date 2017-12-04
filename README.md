@@ -1,0 +1,2 @@
+Dailymotion Plugin for Mecha
+============================
