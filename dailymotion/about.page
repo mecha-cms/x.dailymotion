@@ -1,20 +1,20 @@
 ---
-title: Dailymotion
+title: DailyMotion
 description: Convert _Dailymotion_ link and URL into video.
 author: Taufik Nurrohman
 type: Markdown
-version: 1.0.0
+version: 1.0.1
 ...
 
-This plugin will automatically convert these supported _Dailymotion_ link and URL in the page and comment content to _Dailymotion_ video player:
+This plugin will automatically convert these supported _DailyMotion_ link and URL in the page and comment content to _DailyMotion_ video player:
 
  - `https://www.dailymotion.com/video/{$id}`
  - `https://www.dailymotion.com/embed/video/{$id}`
  - `https://dai.ly/{$id}`
 
-The _Dailymotion_ link and URL must be written on its own line by itself, with or without the `www`, with `http://` or `https://`.
+The _DailyMotion_ link and URL must be written on its own line by itself, with or without the `www`, with `http://` or `https://`.
 
-All of [the available _Dailymotion_ player parameters](https://developer.dailymotion.com/player#player-parameters) can be used normally and will be applied automatically to the generated video frames.
+All of [the available _DailyMotion_ player parameters](https://developer.dailymotion.com/player#player-parameters) can be used normally and will be applied automatically to the generated video frames.
 
 ### Additional Parameters
 

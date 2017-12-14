@@ -10,10 +10,10 @@ function fn_dailymotion($content, $lot = [], $that = null, $key = null) {
         '<textarea(?:\s[^<>]+?)?>[\s\S]*?</textarea>'
     ];
     $take = [
-        // An anchor in a paragraph tag, a Dailymotion URL in a paragraph tag
-        '<p(?:\s[^<>]+?)?>\s*(?:<a(?:\s[^<>]+?)?>[\s\S]*?<\/a>|' . $dailymotion_pattern . ')\s*<\/p>',
-        // An anchor in its own line, a Dailymotion URL in its own line
-        '(?<=^|\n)(?:[ \t]*<a(?:\s[^<>]+?)?>[^\n]*?<\/a>[ \t]*|' . $dailymotion_pattern . ')(?=\n|$)'
+        // An anchor in a paragraph tag, a DailyMotion URL in a paragraph tag
+        '<p(?:\s[^<>]+?)?>\s*(?:<a(?:\s[^<>]+?)?>[\s\S]*?</a>|' . $dailymotion_pattern . ')\s*</p>',
+        // An anchor in its own line, a DailyMotion URL in its own line
+        '(?<=^|\n)(?:[ \t]*<a(?:\s[^<>]+?)?>[^\n]*?</a>[ \t]*|' . $dailymotion_pattern . ')(?=\n|$)'
     ];
     $part = preg_split('#(' . implode('|', $ignore) . '|' . implode('|', $take) . ')#', $content, null, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
     $s = "";
@@ -24,7 +24,7 @@ function fn_dailymotion($content, $lot = [], $that = null, $key = null) {
             if (
                 strpos($v, '</a>') !== false &&
                 strpos($v, ' href="') !== false &&
-                preg_match('#<a(?:\s[^<>]+?)?>[\s\S]*?<\/a>#', $v, $m)
+                preg_match('#<a(?:\s[^<>]+?)?>[\s\S]*?</a>#', $v, $m)
             ) {
                 $test = HTML::apart($m[0]);
                 if ($test && isset($test[2]['href']) && preg_match('#^' . $dailymotion_pattern . '$#', $test[2]['href'])) {
@@ -87,7 +87,7 @@ function fn_dailymotion_replace($href, $t = 'span') {
         if (is_numeric($q['height']) && strpos($q['height'], '%') === false) {
             $y = 'padding:0;height:' . $q['height'] . 'px';
         } else {
-            $y = 'padding:25px 0 ' . $q['height'] . ';height:0';
+            $y = 'padding:0 0 ' . $q['height'] . ';height:0';
         }
         if (isset($q['width'])) {
             $y .= ';width:' . (is_numeric($q['width']) ? $q['width'] . 'px' : $q['width']);
@@ -95,11 +95,11 @@ function fn_dailymotion_replace($href, $t = 'span') {
         }
         unset($q['height']);
     } else {
-        $y = 'padding:25px 0 56.25%;height:0';
+        $y = 'padding:0 0 56.25%;height:0';
     }
     $q = http_build_query($q);
     $q = $q ? '?' . $q : "";
-    return $id ? '<' . $t . ' class="dailymotion" style="display:block;margin-right:0;margin-left:0;' . $y . ';position:relative;"><iframe style="display:block;margin:0;padding:0;border:0;position:absolute;top:0;left:0;width:100%;height:100%;" src="//www.dailymotion.com/embed/' . $id . $q . '" allowfullscreen></iframe></' . $t . '>' : "";
+    return $id ? '<' . $t . ' class="dailymotion" style="display:block;margin-right:0;margin-left:0;' . $y . ';position:relative;"><iframe style="display:block;margin:0;padding:0;border:0;position:absolute;top:0;left:0;width:100%;height:100%;" src="//www.dailymotion.com/embed/video/' . $id . $q . '" allowfullscreen></iframe></' . $t . '>' : "";
 }
 
 Hook::set([
