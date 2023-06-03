@@ -1,108 +1,93 @@
 <?php
 
-function fn_dailymotion($content, $lot = [], $that = null, $key = null) {
-    $dailymotion_pattern = 'https?://(?:www\.)?(?:dailymotion\.com|dai\.ly)/[^\s<>]+';
-    $ignore = [
-        '<pre(?:\s[^<>]+?)?>[\s\S]*?</pre>',
-        '<code(?:\s[^<>]+?)?>[\s\S]*?</code>',
-        '<script(?:\s[^<>]+?)?>[\s\S]*?</script>',
-        '<style(?:\s[^<>]+?)?>[\s\S]*?</style>',
-        '<textarea(?:\s[^<>]+?)?>[\s\S]*?</textarea>'
-    ];
-    $take = [
-        // An anchor in a paragraph tag, a DailyMotion URL in a paragraph tag
-        '<p(?:\s[^<>]+?)?>\s*(?:<a(?:\s[^<>]+?)?>[\s\S]*?</a>|' . $dailymotion_pattern . ')\s*</p>',
-        // An anchor in its own line, a DailyMotion URL in its own line
-        '(?<=^|\n)(?:[ \t]*<a(?:\s[^<>]+?)?>[^\n]*?</a>[ \t]*|' . $dailymotion_pattern . ')(?=\n|$)'
-    ];
-    $part = preg_split('#(' . implode('|', $ignore) . '|' . implode('|', $take) . ')#', $content, null, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
-    $s = "";
-    foreach ($part as $v) {
-        // `<p> ... </p>`
-        if (substr($v, -4) === '</p>') {
-            // `<p><a href="{$link}">text</a></p>`
-            if (
-                strpos($v, '</a>') !== false &&
-                strpos($v, ' href="') !== false &&
-                preg_match('#<a(?:\s[^<>]+?)?>[\s\S]*?</a>#', $v, $m)
-            ) {
-                $test = HTML::apart($m[0]);
-                if ($test && isset($test[2]['href']) && preg_match('#^' . $dailymotion_pattern . '$#', $test[2]['href'])) {
-                    $s .= fn_dailymotion_replace($test[2]['href'], 'p') ?: $v;
-                } else {
-                    $s .= $v;
+namespace x\dailymotion {
+    function content($content) {
+        if (!$content || false === \stripos($content, '</p>')) {
+            return $content;
+        }
+        // Skip parsing process if we are in these HTML element(s)
+        $parts = (array) \preg_split('/(<!--[\s\S]*?-->|' . \implode('|', (static function ($parts) {
+            foreach ($parts as $k => &$v) {
+                $v = '<' . \x($k) . '(?:\s[\p{L}\p{N}_:-]+(?:=(?:"[^"]*"|\'[^\']*\'|[^\/>]*))?)*>(?:(?R)|[\s\S])*?<\/' . \x($k) . '>';
+            }
+            unset($v);
+            return $parts;
+        })([
+            'pre' => 1,
+            'code' => 1, // Must come after `pre`
+            'kbd' => 1,
+            'math' => 1,
+            'script' => 1,
+            'style' => 1,
+            'textarea' => 1,
+            'p' => 1 // Must come last
+        ])) . ')/', $content, -1, \PREG_SPLIT_NO_EMPTY | \PREG_SPLIT_DELIM_CAPTURE);
+        $content = "";
+        foreach ($parts as $part) {
+            if ($part && '<' === $part[0] && '>' === \substr($part, -1)) {
+                if ('</p>' === \strtolower(\substr($part, -4))) {
+                    $content .= \preg_replace_callback('/<p(\s(?:"[^"]*"|\'[^\']\'|[^\/>])*)?>(\s*)(<a(?:\s(?:"[^"]*"|\'[^\']\'|[^\/>])*)?>[\s\S]*?<\/a>|https?:\/\/(?:www\.)?(?:dai\.ly|dailymotion\.com)\/\S+)(\s*)<\/p>/i', static function ($m) {
+                        if ('</a>' === \strtolower(\substr($v = $m[3], -4)) && false !== \stripos($v, 'href=')) {
+                            $a = new \HTML($v);
+                            if (!$href = $a['href']) {
+                                return $m[0];
+                            }
+                            $m['title'] = $a['title'] ?? \trim(\strip_tags((string) $a[1]));
+                            $m[3] = $v = $href;
+                        }
+                        if (0 === \strpos($v, 'http://') || 0 === \strpos($v, 'https://')) {
+                            // `https://www.dailymotion.com/embed/video/:id`
+                            if (false !== \strpos($v, '/embed/video/') && \preg_match('/\/embed\/video\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
+                                return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            }
+                            // `https://www.dailymotion.com/video/:id`
+                            if (false !== \strpos($v, '/video/') && \preg_match('/\/video\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
+                                return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            }
+                            // `https://dai.ly/:id`
+                            if ((false !== \strpos($v, '://dai.ly/') || false !== \strpos($v, '.dai.ly/')) && \preg_match('/[\/.]dai\.ly\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
+                                return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            }
+                        }
+                        return $m[0];
+                    }, $part);
+                    continue;
                 }
-            // `<p>{$link}</p>`
-            } else if (
-                strpos($v, '://') !== false &&
-                preg_match('#' . $dailymotion_pattern . '#', $v, $m)
-            ) {
-                $s .= fn_dailymotion_replace($m[0], 'p') ?: $v;
-            } else {
-                $s .= $v;
+                $content .= $part; // Is a HTML tag other than `<p>` or comment, skip!
+                continue;
             }
-        // `<a href="{$link}">text</a>`
-        } else if (
-            substr($v, -4) === '</a>' &&
-            strpos($v, ' href="') !== false
-        ) {
-            $test = HTML::apart($v);
-            if ($test && isset($test[2]['href']) && preg_match('#^' . $dailymotion_pattern . '$#', $test[2]['href'])) {
-                $s .= fn_dailymotion_replace($test[2]['href'], 'p') ?: $v;
-            } else {
-                $s .= $v;
-            }
-        // `{$link}`
-        } else if (
-            $v &&
-            $v[0] !== '<' &&
-            substr($v, -1) !== '>' &&
-            strpos($v, '://') !== false &&
-            strpos($v, "\n") === false &&
-            preg_match('#' . $dailymotion_pattern . '#', $v, $m)
-        ) {
-            $s .= fn_dailymotion_replace($m[0]) ?: $v;
-        } else {
-            $s .= $v;
+            $content .= $part;
         }
+        return "" !== $content ? $content : null;
     }
-    return $s;
+    function from(string $id, string $q, array $m = []) {
+        $p = new \HTML('<p' . ($m[1] ?? "") . '>');
+        return new \HTML(\Hook::fire('y.dailymotion', [[
+            'id' => $id,
+            'query' => $q ? \From::query($q) : [],
+            0 => $p[0],
+            1 => [
+                '<' => $m[2] ?? "",
+                'embed' => ['iframe', "", [
+                    'allow' => 'autoplay',
+                    'allowfullscreen' => true,
+                    'frameborder' => '0',
+                    'src' => 'https://www.dailymotion.com/embed/video/' . $id . $q,
+                    'style' => 'border: 0; display: block; height: 100%; left: 0; margin: 0; overflow: hidden; padding: 0; position: absolute; top: 0; width: 100%;',
+                    'title' => $m['title'] ?? \i('Dailymotion Video Player')
+                ]],
+                '>' => $m[4] ?? ""
+            ],
+            2 => \array_replace([
+                'style' => 'display: block; height: 0; margin-left: 0; margin-right: 0; overflow: hidden; padding: 0 0 56.25%; position: relative;'
+            ], (array) ($p[2] ?? []))
+        ]]), true);
+    }
+    \Hook::set('page.content', __NAMESPACE__ . "\\content", 2.1);
 }
 
-function fn_dailymotion_replace($href, $t = 'span') {
-    $u = parse_url($href);
-    parse_str(isset($u['query']) ? $u['query'] : "", $q);
-    $q = array_replace_recursive(Plugin::state(__DIR__, 'q') ?: [], $q);
-    $id = null;
-    if (!empty($u['path'])) {
-        if (strpos($href, '/embed/') !== false) {
-            $id = explode('/', trim($u['path'], '/'))[2]; // `https://www.dailymotion.com/embed/video/{$id}`
-        } else if (strpos($href, '/video/') !== false) {
-            $id = explode('/', trim($u['path'], '/'))[1]; // `https://www.dailymotion.com/video/{$id}`
-        } else if (strpos($href, '.ly/') !== false) {
-            $id = explode('/', trim($u['path'], '/'))[0]; // `https://dai.ly/{$id}`
-        }
+namespace {
+    if (\defined("\\TEST") && 'x.dailymotion' === \TEST && \is_file($test = __DIR__ . \D . 'test.php')) {
+        require $test;
     }
-    if (isset($q['height'])) {
-        if (is_numeric($q['height']) && strpos($q['height'], '%') === false) {
-            $y = 'padding:0;height:' . $q['height'] . 'px';
-        } else {
-            $y = 'padding:0 0 ' . $q['height'] . ';height:0';
-        }
-        if (isset($q['width'])) {
-            $y .= ';width:' . (is_numeric($q['width']) ? $q['width'] . 'px' : $q['width']);
-            unset($q['width']);
-        }
-        unset($q['height']);
-    } else {
-        $y = 'padding:0 0 56.25%;height:0';
-    }
-    $q = http_build_query($q);
-    $q = $q ? '?' . $q : "";
-    return $id ? '<' . $t . ' class="dailymotion" style="display:block;margin-right:0;margin-left:0;' . $y . ';position:relative;"><iframe style="display:block;margin:0;padding:0;border:0;position:absolute;top:0;left:0;width:100%;height:100%;" src="//www.dailymotion.com/embed/video/' . $id . $q . '" allowfullscreen></iframe></' . $t . '>' : "";
 }
-
-Hook::set([
-    'comment.content',
-    'page.content'
-], 'fn_dailymotion', 2.1);

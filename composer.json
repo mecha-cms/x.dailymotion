@@ -1,0 +1,5 @@
+{
+  "description": "Converts Dailymotion links into video embeds.",
+  "license": "GPL-3.0-or-later",
+  "name": "mecha-cms/x.dailymotion"
+}

@@ -1,0 +1,23 @@
+<p>asdf asdf asdf</p>
+<p>asdf https://www.dailymotion.com/video/x27hzsb asdf</p>
+<p>asdf https://www.dailymotion.com/video/x27hzsb</p>
+<p>https://example.com</p>
+<p>https://www.dailymotion.com/video/x27hzsb asdf</p>
+
+<p>https://dai.ly/x27hzsb</p>
+<p>https://dai.ly/x27hzsb?asdf=asdf</p>
+<p>https://www.dailymotion.com/embed/video/x27hzsb</p>
+<p>https://www.dailymotion.com/embed/video/x27hzsb?asdf=asdf</p>
+<p>https://www.dailymotion.com/video/x27hzsb</p>
+<p>https://www.dailymotion.com/video/x27hzsb?asdf=asdf</p>
+
+<p><a href="https://dai.ly/x27hzsb">asdf asdf asdf</a></p>
+<p><a href="https://dai.ly/x27hzsb" title="asdf asdf asdf">asdf</a></p>
+
+<p>asdf <a href="https://dai.ly/x27hzsb">asdf asdf asdf</a></p>
+
+<p> https://www.dailymotion.com/video/x27hzsb </p>
+
+<p>
+  https://www.dailymotion.com/video/x27hzsb
+</p>

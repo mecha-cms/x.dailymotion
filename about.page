@@ -1,34 +1,34 @@
 ---
-title: DailyMotion
-description: Convert _Dailymotion_ link and URL into video.
+title: Dailymotion
+description: Converts Dailymotion links into video embeds.
+icon: 'M14.068 11.313a3.104 3.104 0 0 0-3.104 3.11c0 1.753 1.35 3.085 3.255 3.085l-.016.002c1.59 0 2.925-1.31 2.925-3.04c0-1.8-1.336-3.157-3.062-3.157zM0 0v24h24V0H0zm20.693 20.807h-3.576v-1.41c-1.1 1.08-2.223 1.47-3.715 1.47c-1.522 0-2.832-.495-3.93-1.485c-1.448-1.275-2.198-2.97-2.198-4.936c0-1.8.7-3.414 2.01-4.674c1.17-1.146 2.595-1.73 4.185-1.73c1.52 0 2.69.513 3.53 1.59V4.157l3.693-.765V3.39l.002.003h-.002v17.414Z'
+color: '#303133'
 author: Taufik Nurrohman
 type: Markdown
-version: 1.0.1
+version: 2.0.0
 ...
 
-This plugin will automatically convert these supported _DailyMotion_ link and URL in the page and comment content to _DailyMotion_ video player:
+This extension converts these supported [Dailymotion](https://www.dailymotion.com) links in the page content into
+Dailymotion video players:
 
- - `https://www.dailymotion.com/video/{$id}`
- - `https://www.dailymotion.com/embed/video/{$id}`
- - `https://dai.ly/{$id}`
+ - `https://dai.ly/:id`
+ - `https://www.dailymotion.com/embed/video/:id`
+ - `https://www.dailymotion.com/video/:id`
 
-The _DailyMotion_ link and URL must be written on its own line by itself, with or without the `www`, with `http://` or `https://`.
+Links must be written on one line as the paragraph content. The `www.` part is always optional:
 
-All of [the available _DailyMotion_ player parameters](https://developer.dailymotion.com/player#player-parameters) can be used normally and will be applied automatically to the generated video frames.
-
-### Additional Parameters
-
-Name | Description
----- | -----------
-`width` | Set custom video width.
-`height` | Set custom video height.
-
-**Example:**
-
-~~~ .txt
-https://www.dailymotion.com/video/{$id}?width=600&height=250
-https://www.dailymotion.com/video/{$id}?width=600px&height=250px
-https://www.dailymotion.com/video/{$id}?height=25%
+~~~ .html
+<p>https://dai.ly/x27hzsb</p>
 ~~~
 
-<!-- block:donate -->
+Writing links as anchor tags is recommended, so that when you decide to remove this feature in the future, those links
+will still be functional as normal links that will direct you to the correct YouTube video page:
+
+~~~ .html
+<p>
+  <a href="https://dai.ly/x27hzsb" target="_blank">Video Title</a>
+</p>
+~~~
+
+All of [the available Dailymotion player parameters](https://developer.dailymotion.com/player#player-parameters) can be
+used normally and will be applied automatically to the generated video frames.
