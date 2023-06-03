@@ -26,7 +26,7 @@ namespace x\dailymotion {
         foreach ($parts as $part) {
             if ($part && '<' === $part[0] && '>' === \substr($part, -1)) {
                 if ('</p>' === \strtolower(\substr($part, -4))) {
-                    $content .= \preg_replace_callback('/<p(\s(?:"[^"]*"|\'[^\']\'|[^\/>])*)?>(\s*)(<a(?:\s(?:"[^"]*"|\'[^\']\'|[^\/>])*)?>[\s\S]*?<\/a>|https?:\/\/(?:www\.)?(?:dai\.ly|dailymotion\.com)\/\S+)(\s*)<\/p>/i', static function ($m) {
+                    $content .= \preg_replace_callback('/<p(\s(?:"[^"]*"|\'[^\']*\'|[^\/>]+)*)?>(\s*)(<a(?:\s(?:"[^"]*"|\'[^\']*\'|[^\/>]+)*)?>[\s\S]*?<\/a>|https?:\/\/(?:www\.)?(?:dai\.ly|dailymotion\.com)\/\S+)(\s*)<\/p>/i', static function ($m) {
                         if ('</a>' === \strtolower(\substr($v = $m[3], -4)) && false !== \stripos($v, 'href=')) {
                             $a = new \HTML($v);
                             if (!$href = $a['href']) {
