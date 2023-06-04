@@ -1,6 +1,6 @@
 <?php
 
-namespace x\dailymotion {
+namespace x\dailymotion\page {
     function content($content) {
         if (!$content || false === \stripos($content, '</p>')) {
             return $content;
@@ -60,6 +60,16 @@ namespace x\dailymotion {
         }
         return "" !== $content ? $content : null;
     }
+    \Hook::set('page.content', __NAMESPACE__ . "\\content", 2.1);
+    if (isset($state->x->image)) {
+        function image($image) {}
+        function images($images) {}
+        \Hook::set('page.image', __NAMESPACE__ . "\\image", 2.2);
+        \Hook::set('page.images', __NAMESPACE__ . "\\images", 2.2);
+    }
+}
+
+namespace x\dailymotion {
     function from(string $id, string $q, array $m = []) {
         $p = new \HTML('<p' . ($m[1] ?? "") . '>');
         return new \HTML(\Hook::fire('y.dailymotion', [[
@@ -83,7 +93,6 @@ namespace x\dailymotion {
             ], (array) ($p[2] ?? []))
         ]]), true);
     }
-    \Hook::set('page.content', __NAMESPACE__ . "\\content", 2.1);
 }
 
 namespace {
