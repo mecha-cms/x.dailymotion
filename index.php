@@ -14,7 +14,7 @@ function from(string $id, string $end, array $m = []) {
                 'allow' => 'autoplay',
                 'allowfullscreen' => true,
                 'frameborder' => '0',
-                'src' => 'https://www.dailymotion.com/embed/video/' . $id . $q,
+                'src' => 'https://www.dailymotion.com/embed/video/' . $id . $end,
                 'style' => 'border: 0; display: block; height: 100%; left: 0; margin: 0; overflow: hidden; padding: 0; position: absolute; top: 0; width: 100%;',
                 'title' => $m['title'] ?? \i('Dailymotion Video Player')
             ]],
@@ -70,7 +70,7 @@ function page__content($content) {
                             return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
                         }
                         // `https://dai.ly/:id`
-                        if ((false !== \strpos($v, '://dai.ly/') || false !== \strpos($v, '.dai.ly/')) && \preg_match('/[\/.]dai\.ly\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
+                        if ((false !== \strpos($v, '/dai.ly/') || false !== \strpos($v, '.dai.ly/')) && \preg_match('/[\/.]dai\.ly\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
                             return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
                         }
                     }
@@ -86,11 +86,48 @@ function page__content($content) {
     return "" !== $content ? $content : null;
 }
 
-\Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
+function page__image($image) {
+    // Skip if `image` data has been set!
+    if ($image) {
+        return $image;
+    }
+    // Get Dailymotion link from `content` data
+    if ($content = $this->content) {
+        if (false !== \strpos($content, '<iframe ') && \preg_match('/<iframe(\s[^>]+)>/', $content, $m)) {
+            if (false !== \strpos($m[1], ' src=')) {
+                $link = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($m[1], ' src='), 5) . ' ', ' ', true), '\'"'));
+                // Get Dailymotion video image from link
+                if (false !== \strpos($link, 'dailymotion.com/embed/video/') && \preg_match('/\/embed\/video\/([^\/?&#]+)$/', $link, $mm)) {
+                    return 'https://www.dailymotion.com/thumbnail/video/' . $mm[1];
+                }
+            }
+        }
+    }
+    return $image;
+}
 
+function page__images($images) {
+    $images = (array) ($images ?? []);
+    // Get Dailymotion link(s) from `content` data
+    if ($content = $this->content) {
+        if (false !== \strpos($content, '<iframe ') && \preg_match_all('/<iframe(\s[^>]+)>/', $content, $m)) {
+            foreach ($m[1] as $v) {
+                if (false !== \strpos($v, ' src=')) {
+                    $link = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($v, ' src='), 5) . ' ', ' ', true), '\'"'));
+                    // Get Dailymotion video image from link
+                    if (false !== \strpos($link, 'dailymotion.com/embed/video/') && \preg_match('/\/embed\/video\/([^\/?&#]+)$/', $link, $mm)) {
+                        // Merge with the current `images` data
+                        $images[] = 'https://www.dailymotion.com/thumbnail/video/' . $mm[1];
+                    }
+                }
+            }
+        }
+    }
+    return \array_unique($images);
+}
+
+\Hook::set('page.content', __NAMESPACE__ . "\\page__content", 2.1);
 if (isset($state->x->image)) {
-    function page__image($image) {}
-    function page__images($images) {}
     \Hook::set('page.image', __NAMESPACE__ . "\\page__image", 2.2);
     \Hook::set('page.images', __NAMESPACE__ . "\\page__images", 2.2);
 }

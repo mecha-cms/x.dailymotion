@@ -22,7 +22,7 @@ Links must be written on one line as the paragraph content. The `www.` part is a
 ~~~
 
 Writing links as anchor tags is recommended, so that when you decide to remove this feature in the future, those links
-will still be functional as normal links that will direct you to the correct YouTube video page:
+will still be functional as normal links that will direct you to the correct Dailymotion video page:
 
 ~~~ .html
 <p>
