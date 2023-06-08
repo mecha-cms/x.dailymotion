@@ -63,19 +63,19 @@ function page__content($content) {
                     if (0 === \strpos($v, 'http://') || 0 === \strpos($v, 'https://')) {
                         // `https://www.dailymotion.com/embed/video/:id`
                         if (false !== \strpos($v, '/embed/video/') && \preg_match('/\/embed\/video\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
-                            return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            return (string) \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
                         }
                         // `https://www.dailymotion.com/video/:id`
                         if (false !== \strpos($v, '/video/') && \preg_match('/\/video\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
-                            return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            return (string) \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
                         }
                         // `https://dai.ly/:id`
                         if ((false !== \strpos($v, '/dai.ly/') || false !== \strpos($v, '.dai.ly/')) && \preg_match('/[\/.]dai\.ly\/([^\/?&#]+)([?&#].*)?$/', $v, $mm)) {
-                            return \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
+                            return (string) \x\dailymotion\from($mm[1], $mm[2] ?? "", $m);
                         }
                     }
                     return $m[0];
-                }, $part);
+                }, $part) ?? $part;
                 continue;
             }
             $content .= $part; // Is a HTML tag other than `<p>` or comment, skip!
