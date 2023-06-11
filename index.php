@@ -33,7 +33,7 @@ function page__content($content) {
     // Skip parsing process if we are in these HTML element(s)
     $parts = (array) \preg_split('/(<!--[\s\S]*?-->|' . \implode('|', (static function ($parts) {
         foreach ($parts as $k => &$v) {
-            $v = '<' . \x($k) . '(?:\s[\p{L}\p{N}_:-]+(?:=(?:"[^"]*"|\'[^\']*\'|[^\/>]*))?)*>(?:(?R)|[\s\S])*?<\/' . \x($k) . '>';
+            $v = '<' . \x($k) . '(?:\s[\p{L}\p{N}_:-]+(?:=(?:"[^"]*"|\'[^\']*\'|[^\/>]*))?)*>[\s\S]*?<\/' . \x($k) . '>';
         }
         unset($v);
         return $parts;
@@ -51,14 +51,23 @@ function page__content($content) {
     foreach ($parts as $part) {
         if ($part && '<' === $part[0] && '>' === \substr($part, -1)) {
             if ('</p>' === \strtolower(\substr($part, -4))) {
-                $content .= \preg_replace_callback('/<p(\s(?:"[^"]*"|\'[^\']*\'|[^\/>]+)*)?>(\s*)(<a(?:\s(?:"[^"]*"|\'[^\']*\'|[^\/>]+)*)?>[\s\S]*?<\/a>|https?:\/\/(?:www\.)?(?:dai\.ly|dailymotion\.com)\/\S+)(\s*)<\/p>/i', static function ($m) {
+                $content .= \preg_replace_callback('/<p(\s(?:"[^"]*"|\'[^\']*\'|[^\/>])*)?>(\s*)(<a(?:\s(?:"[^"]*"|\'[^\']*\'|[^\/>])*)>[\s\S]*?<\/a>|<iframe(?:\s(?:"[^"]*"|\'[^\']*\'|[^\/>])*)>[\s\S]*?<\/iframe>|https?:\/\/(?:www\.)?(?:dai\.ly|dailymotion\.com)\/\S+)(\s*)<\/p>/i', static function ($m) {
                     if ('</a>' === \strtolower(\substr($v = $m[3], -4)) && false !== \stripos($v, 'href=')) {
                         $a = new \HTML($v);
                         if (!$href = $a['href']) {
                             return $m[0];
                         }
-                        $m['title'] = $a['title'] ?? \trim(\strip_tags((string) $a[1]));
+                        $default = \htmlspecialchars_decode(\trim(\strip_tags((string) $a[1])));
+                        $m['title'] = $a['title'] ?? ($default !== $href ? $default : null);
                         $m[3] = $v = $href;
+                    } else if ('</iframe>' === \strtolower(\substr($v = $m[3], -9)) && false !== \stripos($v, 'src=')) {
+                        $iframe = new \HTML($v);
+                        if (!$src = $iframe['src']) {
+                            return $m[0];
+                        }
+                        $default = \htmlspecialchars_decode(\trim(\strip_tags((string) $iframe[1])));
+                        $m['title'] = $iframe['title'] ?? ($default !== $src ? $default : null);
+                        $m[3] = $v = $src;
                     }
                     if (0 === \strpos($v, 'http://') || 0 === \strpos($v, 'https://')) {
                         // `https://www.dailymotion.com/embed/video/:id`
@@ -75,7 +84,7 @@ function page__content($content) {
                         }
                     }
                     return $m[0];
-                }, $part) ?? $part;
+                }, $part);
                 continue;
             }
             $content .= $part; // Is a HTML tag other than `<p>` or comment, skip!

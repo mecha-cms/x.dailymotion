@@ -21,3 +21,7 @@
 <p>
   https://www.dailymotion.com/video/x27hzsb
 </p>
+
+<p>
+  <iframe src="https://www.dailymotion.com/embed/video/x27hzsb"></iframe>
+</p>
